@@ -13,8 +13,8 @@ bool RMBLE_ON = true;
 int MTR_PIN = 3;
 int SRV_PIN = 9;
 
-int SRV_CENTER = 90;
-int SRV_MAX_OFFSET = 80;
+int SRV_CENTER = 43;
+int SRV_MAX_OFFSET = 20;
 
 // Communication details
 int SERIAL_RATE = 9600;
@@ -58,36 +58,34 @@ void loop() {
   // Some, uh, vibrating and shit.
   ps2x.read_gamepad(false, RMBLE_ON);
 
-  // Driving
-  int L_X = ps2x.Analog(PSS_LX);
-  int L_Y = ps2x.Analog(PSS_LY);
+  // Throttle
+  int LB_1 = ps2x.Button(PSB_L1);
+  int LB_2 = ps2x.Button(PSB_L2);
+  int RB_1 = ps2x.Button(PSB_R1);
+  int RB_2 = ps2x.Button(PSB_R2);
 
   // Steering
+  int L_X = ps2x.Analog(PSS_LX);
   int R_X = ps2x.Analog(PSS_RX);
-  int R_Y = ps2x.Analog(PSS_RY);
 
-  // double throt = max(0, (127.0 - L_Y) / 127);
-  // double steer = 
-  
-  // Serial.println(L_Y);
-  // Serial.println(throt);
-  // Serial.println((127.0 - L_Y) / 127);
+  // Modify raw throttle values.
+  double mod_throt = 0.00;
 
+  if (LB_1) mod_throt = 0.25;
+  if (LB_2) mod_throt = 0.50;
+  if (RB_1) mod_throt = 0.75;
+  if (RB_2) mod_throt = 1.00;
 
+  // modify raw steering values.
+  int avg_steer = (L_X + R_X) / 2;
+  double mod_steer = SRV_CENTER + SRV_MAX_OFFSET - (avg_steer * (2.0 * SRV_MAX_OFFSET) / 255);
 
-  /*
-  Serial.print("LX: [");
-  Serial.print(L_X);
-  Serial.print("] L_Y: [");
-  Serial.print(L_Y);
-  Serial.print("] RX: [");
-  Serial.print(R_X);
-  Serial.print("] R_Y: [");
-  Serial.print(R_Y);
-  Serial.println("]");
-  */
+  Serial.print(mod_throt);
+  Serial.print(" | ");
+  Serial.println(mod_steer);
 
-  // Do some things with these
-  analogWrite(MTR_PIN, 128);
-  
+  analogWrite(MTR_PIN, mod_throt * 255);
+  delay(25);
+  servo.write(mod_steer);
+  delay(25);
 }
