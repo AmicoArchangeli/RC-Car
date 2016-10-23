@@ -8,6 +8,7 @@ int ATN_PIN = 10;
 int DAT_PIN = 12;
 bool PRESS_ON = true;
 bool RMBLE_ON = true;
+byte vbr_rate = 0;
 
 // MOTOR + SERVO PIN MAPPINGS
 int MTR_PIN = 3;
@@ -58,13 +59,19 @@ void setup() {
 
 void loop() {
   // Some, uh, vibrating and shit.
-  ps2x.read_gamepad(false, RMBLE_ON);
+  ps2x.read_gamepad(false, vbr_rate);
 
   // Throttle
   int LB_1 = ps2x.Button(PSB_L1);
   int LB_2 = ps2x.Button(PSB_L2);
   int RB_1 = ps2x.Button(PSB_R1);
   int RB_2 = ps2x.Button(PSB_R2);
+
+  // Brake
+  int BRAKE_1 = ps2x.Analog(PSAB_TRIANGLE);
+  int BRAKE_2 = ps2x.Analog(PSAB_SQUARE);
+  int BRAKE_3 = ps2x.Analog(PSAB_CROSS);
+  int BRAKE_4 = ps2x.Analog(PSAB_CIRCLE);
 
   // Steering
   int L_X = ps2x.Analog(PSS_LX);
@@ -78,9 +85,13 @@ void loop() {
   if (RB_1) mod_throt = 0.75;
   if (RB_2) mod_throt = 1.00;
 
+  vbr_rate = (LB_1 && LB_2 && RB_1 && RB_2) * 255;
+
+  if (BRAKE_1 || BRAKE_2 || BRAKE_3 || BRAKE_4) mod_throt = 0.00;
+
   // modify raw steering values.
   int avg_steer = (L_X + R_X) / 2;
-  double mod_steer = SRV_CENTER + SRV_MAX_OFFSET - (avg_steer * (2.0 * SRV_MAX_OFFSET) / 255);
+  double mod_steer = SRV_CENTER + SRV_MAX_OFFSET - (avg_steer * (2.00 * SRV_MAX_OFFSET) / 255);
 
   // Readjust raw steering values to compensate for offset.
   if (abs(mod_steer - SRV_CENTER) < SRV_ERR) {
