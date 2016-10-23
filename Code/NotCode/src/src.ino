@@ -15,6 +15,8 @@ int SRV_PIN = 9;
 
 int SRV_CENTER = 43;
 int SRV_MAX_OFFSET = 20;
+int SRV_ERR = 3; // Error tolerance.
+int ERR_LAST = 42;
 
 // Communication details
 int SERIAL_RATE = 9600;
@@ -79,6 +81,17 @@ void loop() {
   // modify raw steering values.
   int avg_steer = (L_X + R_X) / 2;
   double mod_steer = SRV_CENTER + SRV_MAX_OFFSET - (avg_steer * (2.0 * SRV_MAX_OFFSET) / 255);
+
+  // Readjust raw steering values to compensate for offset.
+  if (abs(mod_steer - SRV_CENTER) < SRV_ERR) {
+    if (ERR_LAST != 42) {
+      mod_steer = 42;
+      ERR_LAST = 42;
+    } else {
+      mod_steer = 43;
+      ERR_LAST = 43;
+    }
+  }
 
   Serial.print(mod_throt);
   Serial.print(" | ");
