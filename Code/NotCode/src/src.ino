@@ -108,7 +108,7 @@ void loop() {
   Serial.print(" | ");
   Serial.println(mod_steer);
 
-  analogWrite(MTR_PIN, mod_throt * 255);
+  analogWrite(MTR_PIN, 255 - mod_throt * 255);
   delay(25);
   servo.write(mod_steer);
   delay(25);
